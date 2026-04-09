@@ -65,6 +65,7 @@ export default defineConfig(() => {
       alias: {
         "@client": path.resolve(__dirname, "./"),
         "@assets": path.resolve(__dirname, "../assets"),
+        "@shared": path.resolve(__dirname, "../shared"),
       },
     },
     server: {

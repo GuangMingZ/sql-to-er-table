@@ -104,16 +104,25 @@ export function SqlToERPage() {
   const [diagramData, setDiagramData] = useState<DiagramData | null>(null);
   const [parseErrors, setParseErrors] = useState<string[]>([]);
   const [hasGenerated, setHasGenerated] = useState(false);
+  const [loading, setLoading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleGenerate = useCallback(() => {
-    const { tables, relationships, errors } = parseSqlToERData(sqlText);
-    setParseErrors(errors);
-    if (tables.length > 0) {
-      setDiagramData({ tables, relationships });
-      setHasGenerated(true);
-    } else if (errors.length === 0) {
-      setParseErrors(["未检测到 CREATE TABLE 语句，请检查 SQL 格式。"]);
+  const handleGenerate = useCallback(async () => {
+    setLoading(true);
+    setParseErrors([]);
+    try {
+      const { tables, relationships, errors } = await parseSqlToERData(sqlText);
+      setParseErrors(errors);
+      if (tables.length > 0) {
+        setDiagramData({ tables, relationships });
+        setHasGenerated(true);
+      } else if (errors.length === 0) {
+        setParseErrors(["未检测到 CREATE TABLE 语句，请检查 SQL 格式。"]);
+      }
+    } catch (err: any) {
+      setParseErrors([`解析失败：${err?.message ?? "未知错误"}`]);
+    } finally {
+      setLoading(false);
     }
   }, [sqlText]);
 
@@ -148,10 +157,10 @@ export function SqlToERPage() {
         </div>
         <div className="sql-er-page__actions">
           <Space>
-            <Button type="primary" size="large" onClick={handleGenerate}>
+            <Button type="primary" size="large" onClick={handleGenerate} loading={loading}>
               生成 ER 图
             </Button>
-            <Button size="large" onClick={handleReset}>
+            <Button size="large" onClick={handleReset} disabled={loading}>
               重置示例
             </Button>
           </Space>

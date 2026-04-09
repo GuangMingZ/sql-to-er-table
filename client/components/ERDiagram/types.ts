@@ -1,31 +1,6 @@
-// ER 图相关类型定义（基于简化的 SQL 解析结果，不依赖 helix 特定类型）
-
-export interface ColumnSchema {
-  type: string;
-  nullable: boolean;
-  comment: string;
-}
-
-export interface TableData {
-  table_name: string;
-  name: string;
-  comment: string | null;
-  schema: Record<string, ColumnSchema>;
-  doc: {
-    field_notes: Record<string, string>;
-    sample_values: Record<string, any[]>;
-  };
-  enum_index_status: Record<string, any>;
-  enum_value_count: Record<string, any>;
-  enum_exceed_limit: Record<string, boolean>;
-  index_info?: {
-    primary_key?: string[];
-  };
-}
-
-export interface RelationshipData {
-  relationships: string[][];
-}
+// ER 图相关类型定义
+// 基础类型从 shared 模块导入
+export type { ColumnSchema, TableData, RelationshipData } from "@shared/types";
 
 export interface TableColumn {
   type: string;
