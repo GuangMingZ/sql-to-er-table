@@ -1,0 +1,17 @@
+# 1. TypeScript 类型检查
+echo "🔍 正在检查 TypeScript 类型..."
+tsc-files --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript 类型检查失败，请修复类型错误后再提交"
+  exit 1
+fi
+echo "✅ TypeScript 类型检查通过"
+
+# 2. ESLint 增量检查（仅检查变更文件）
+echo "🔍 正在检查 ESLint..."
+npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint 检查失败，请修复 lint 错误后再提交"
+  exit 1
+fi
+echo "✅ ESLint 检查通过"
