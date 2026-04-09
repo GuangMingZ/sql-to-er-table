@@ -1,61 +1,102 @@
-# 全栈 Web 应用框架
+# SQL to ER Diagram
 
-这是一个基于 **Express + React + Vite** 的前后端融合架构示例项目,展示了现代全栈 Web 应用的最佳实践。
+[English](./README_EN.md) | 简体中文
 
-## 架构特点
+一个将 SQL DDL 语句转换为可视化 ER 图的 Web 应用，基于 **Express + React + Vite** 全栈架构构建。
 
-### 🏗️ 前后端融合
-- **单一代码仓库**：前端和后端代码在同一个项目中,便于统一管理
-- **统一构建流程**：使用 Vite 同时支持开发和生产环境
-- **类型共享**：前后端共享 TypeScript 类型定义
+![License](https://img.shields.io/badge/license-ISC-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)
 
-### 🚀 技术栈
+## ✨ 功能特性
 
-#### 前端
-- **React 18**: 现代化的 UI 框架
-- **TypeScript**: 完整的类型支持
-- **Vite**: 快速的开发构建工具
-- **React Router**: 客户端路由
-- **Less**: CSS 预处理器
+- 🔍 **SQL 解析** - 支持解析 `CREATE TABLE` 语句，自动提取表结构（列名、类型、注释、主键等）
+- 🗺️ **ER 图生成** - 基于解析结果生成交互式实体关系图
+- 🔗 **关系识别** - 自动识别外键约束，绘制表之间的关联连线
+- 🖱️ **交互操作** - 支持拖拽、缩放、小地图导航、节点展开/折叠
+- 📐 **自动布局** - 使用 Dagre 算法自动排列表节点位置
+- 🔒 **安全传输** - SQL 使用 AES-256-GCM 加密传输
+- 🗄️ **多数据库支持** - 支持 MySQL、PostgreSQL、SQLite、MariaDB 等 11 种数据库方言
 
-#### 后端
-- **Express**: 轻量级 Node.js Web 框架
-- **TypeScript**: 类型安全的服务端开发
-- **Winston**: 日志管理
-- **Express-async-errors**: 异步错误处理
+### 支持的数据库类型
 
-## 项目结构
+| 数据库 | 状态 |
+|--------|------|
+| MySQL | ✅ 默认 |
+| MariaDB | ✅ |
+| PostgreSQL | ✅ |
+| SQLite | ✅ |
+| SQL Server (TransactSQL) | ✅ |
+| Oracle (DB2) | ✅ |
+| Hive | ✅ |
+| BigQuery | ✅ |
+| Athena | ✅ |
+| Redshift | ✅ |
+| FlinkSQL | ✅ |
+
+## 🛠️ 技术栈
+
+### 前端
+- **React 18** - 现代化 UI 框架
+- **TypeScript** - 类型安全
+- **Vite** - 快速构建工具
+- **Ant Design** - UI 组件库
+- **React Flow** - 图可视化引擎
+- **Dagre** - 图布局算法
+- **Less** - CSS 预处理器
+
+### 后端
+- **Express** - Node.js Web 框架
+- **node-sql-parser** - SQL 解析器
+- **Winston** - 日志系统
+- **AES-256-GCM** - 数据加密
+
+## 📁 项目结构
 
 ```
-.
-├── client/                 # 前端代码
-│   ├── pages/             # 页面组件
-│   ├── components/        # 可复用组件
-│   ├── hooks/             # React Hooks
-│   ├── utils/             # 工具函数
-│   ├── App.tsx            # 根组件
-│   └── main.tsx           # 前端入口
+sql-to-er-table/
+├── client/                          # 前端代码
+│   ├── pages/SqlToER/              # SQL 转 ER 图页面
+│   ├── components/ERDiagram/       # ER 图组件
+│   │   ├── ERDiagram.tsx           # 主容器 (React Flow)
+│   │   ├── ERNode.tsx              # 表节点渲染
+│   │   ├── ERDiagramParser.ts      # 图数据解析器
+│   │   └── utils.ts                # 布局算法
+│   ├── utils/
+│   │   ├── sqlParser.ts            # API 调用封装
+│   │   └── crypto.ts               # 客户端加密
+│   ├── App.tsx                     # 根组件
+│   └── main.tsx                    # 前端入口
 │
-├── server/                 # 后端代码
-│   ├── middleware/        # Express 中间件
-│   ├── utils/             # 工具函数
-│   └── server.ts          # 服务端入口
+├── server/                          # 后端代码
+│   ├── services/
+│   │   └── sqlParser.ts            # SQL 解析服务
+│   ├── middleware/
+│   │   └── serveApi.ts             # API 路由
+│   └── server.ts                   # 服务端入口
 │
-├── assets/                 # 静态资源
-├── package.json           # 项目配置
-└── tsconfig.json          # TypeScript 配置
+├── shared/                          # 前后端共享
+│   ├── types.ts                    # 类型定义
+│   └── crypto.ts                   # 加密工具
+│
+└── package.json
 ```
 
-## 快速开始
+## 🚀 快速开始
 
 ### 环境要求
 
 - Node.js 20+
 - npm 10+
 
-### 安装依赖
+### 安装
 
 ```bash
+# 克隆项目
+git clone <repository-url>
+cd sql-to-er-table
+
+# 安装依赖
 npm install
 ```
 
@@ -65,102 +106,99 @@ npm install
 npm run dev
 ```
 
-项目启动后,在浏览器中访问 `http://127.0.0.1:3003`
+访问 http://127.0.0.1:3003
 
-### 构建生产版本
+### 生产构建
 
 ```bash
 # 构建前端
 npm run build:client
 
-# 启动生产服务器
+# 启动服务
 npm start
 ```
 
-## 核心功能
+## 📖 使用说明
 
-### 1. 开发环境热更新
-- 前端使用 Vite HMR 实现快速热更新
-- 后端使用 tsx watch 实现自动重启
+1. 在输入框中粘贴 SQL DDL 语句（`CREATE TABLE` 语句）
+2. 选择对应的数据库类型（默认 MySQL）
+3. 点击「生成 ER 图」按钮
+4. 查看生成的 ER 图，支持：
+   - 鼠标拖拽移动画布
+   - 滚轮缩放
+   - 点击节点查看详情
+   - 使用小地图快速导航
 
-### 2. 统一的中间件系统
-- HTTP 日志记录
-- 错误处理
-- 静态资源服务
-- API 路由
+### 示例 SQL
 
-### 3. 类型安全
-- 前后端共享类型定义
-- 完整的 TypeScript 支持
+```sql
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
+  username VARCHAR(50) NOT NULL COMMENT '用户名',
+  email VARCHAR(100) COMMENT '邮箱',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) COMMENT='用户表';
 
-### 4. 生产环境优化
-- Vite 构建优化
-- 静态资源压缩
-- 按需加载
+CREATE TABLE orders (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id INT NOT NULL COMMENT '用户ID',
+  amount DECIMAL(10,2) COMMENT '订单金额',
+  FOREIGN KEY (user_id) REFERENCES users(id)
+) COMMENT='订单表';
+```
 
-## 配置说明
+## ⚙️ 配置
 
 ### 环境变量
 
-在项目根目录创建 `.env` 文件:
+在项目根目录创建 `.env` 文件：
 
 ```env
 # 服务端口
 PORT=3003
 
-# 环境标识
-IS_ONLINE=false
-IS_DEBUG=false
+# 加密密钥（生产环境必须修改）
+SQL_ENCRYPTION_KEY=your-custom-encryption-key-32byte!
 ```
 
-### TypeScript 配置
+## 🔒 安全说明
 
-项目使用 `tsconfig.json` 统一配置前后端的 TypeScript 编译选项:
+- SQL 语句通过 **AES-256-GCM** 加密后传输至服务端
+- 加密算法自带认证标签（AuthTag），防止数据篡改
+- 生产环境请务必配置自定义加密密钥
+
+## 📜 API 接口
+
+### POST /api/parse-sql
+
+解析加密的 SQL DDL 语句。
+
+**请求参数：**
 
 ```json
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true
-  }
+  "payload": "加密后的SQL字符串",
+  "database": "MySQL"
 }
 ```
 
-## 扩展开发
+**响应：**
 
-### 添加新的 API 路由
-
-在 `server/middleware/serveApi.ts` 中添加新的路由:
-
-```typescript
-router.get("/your-api", (req, res) => {
-  res.json({ message: "Your response" });
-});
+```json
+{
+  "success": true,
+  "data": {
+    "tables": [...],
+    "relationships": {
+      "relationships": [
+        ["orders.user_id", "users.id"]
+      ]
+    }
+  },
+  "errors": []
+}
 ```
 
-### 添加新的页面
+## 📄 License
 
-1. 在 `client/pages/` 目录下创建新的页面组件
-2. 在 `client/App.tsx` 中添加路由配置
-
-```typescript
-<Route path="/your-page" element={<YourPage />} />
-```
-
-### 添加中间件
-
-在 `server/middleware/` 目录下创建新的中间件文件,然后在 `server/server.ts` 中注册。
-
-## 最佳实践
-
-1. **代码组织**: 按功能模块组织代码,保持清晰的目录结构
-2. **类型定义**: 将共享的类型定义放在 `types/` 目录下
-3. **错误处理**: 使用统一的错误处理中间件
-4. **日志记录**: 使用 Winston 进行结构化日志记录
-5. **环境配置**: 使用环境变量管理不同环境的配置
-
-## License
-
-ISC
+[ISC](./LICENSE)
