@@ -15,6 +15,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@dagrejs/dagre": "^3.0.0",
+    "@xyflow/react": "^12.10.2",
     "antd": "^6.3.5",
     "classnames": "^2.5.1",
     "cookie-parser": "^1.4.7",
@@ -24,6 +26,7 @@
     "express-async-errors": "^3.1.1",
     "less": "^4.2.2",
     "lodash": "^4.17.21",
+    "node-sql-parser": "^5.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.3.0",
