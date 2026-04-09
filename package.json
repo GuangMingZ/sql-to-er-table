@@ -54,6 +54,7 @@
     "husky": "^9.1.7",
     "less": "^4.2.2",
     "lint-staged": "^16.2.7",
+    "rollup-plugin-visualizer": "^7.0.1",
     "tsc-files": "^1.1.4",
     "tsx": "^4.21.0",
     "typescript": "~5.7.2",

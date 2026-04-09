@@ -1,6 +1,6 @@
 import { Tag, Tooltip } from "antd";
 import { Handle, type Node, type NodeProps, Position } from "@xyflow/react";
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_VISIBLE_ROWS } from "./constant";
 import { useERDiagramContext } from "./ERDiagramContext";
 import "./ERNode.less";
@@ -17,12 +17,16 @@ interface ERNodeData extends Node {
   };
 }
 
+// 折叠状态下滚动区域的最大高度（列表头 + DEFAULT_VISIBLE_ROWS 行）
+const COLLAPSED_MAX_HEIGHT = 28 + DEFAULT_VISIBLE_ROWS * 36; // px
+
 export const ERNode = memo(({ data }: NodeProps<ERNodeData>) => {
   const { label, tableName, comment, columns, columnNames, indexInfo } =
     data as unknown as ERNodeData;
 
   const { triggerRelayout } = useERDiagramContext();
   const nodeRef = useRef<HTMLDivElement>(null);
+  const scrollBodyRef = useRef<HTMLDivElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const tableData = columnNames.map((columnName, index) => {
@@ -35,39 +39,37 @@ export const ERNode = memo(({ data }: NodeProps<ERNodeData>) => {
       nullable: column?.nullable ?? true,
       comment: column?.comment ?? "",
       isPrimaryKey,
-      show: false,
     };
   });
 
-  const displayedTableData = tableData.map((row, idx) => ({
-    ...row,
-    show: isExpanded || idx < DEFAULT_VISIBLE_ROWS,
-  }));
-
   const needsExpansion = tableData.length > DEFAULT_VISIBLE_ROWS;
 
+  // wheel 事件处理：bubble 阶段拦截，避免 capture 阶段阻止 native scroll
   useEffect(() => {
-    if (!nodeRef.current) return;
+    const node = nodeRef.current;
+    if (!node) return;
 
-    const handleNativeWheel = (e: WheelEvent) => {
+    const handleWheel = (e: WheelEvent) => {
+      // capture 阶段拦截，始终阻止事件到达 ReactFlow，防止画布缩放/平移
       e.stopPropagation();
-      e.stopImmediatePropagation();
+      e.preventDefault();
+
+      // 折叠态下：手动驱动滚动容器（capture 阻断了 native scroll，需手动处理）
+      const scrollEl = scrollBodyRef.current;
+      if (!isExpanded && scrollEl) {
+        // deltaMode: 0=px(触摸板), 1=行, 2=页
+        let delta = e.deltaY;
+        if (e.deltaMode === 1) delta *= 20;
+        else if (e.deltaMode === 2) delta *= scrollEl.clientHeight;
+        scrollEl.scrollTop += delta;
+      }
     };
 
-    nodeRef.current.addEventListener("wheel", handleNativeWheel, {
-      passive: false,
-      capture: true,
-    });
-
-    const resizeObserver = new ResizeObserver(() => {});
-    resizeObserver.observe(nodeRef.current);
-
-    const currentRef = nodeRef.current;
-    return () => {
-      resizeObserver.disconnect();
-      currentRef.removeEventListener("wheel", handleNativeWheel, { capture: true });
-    };
-  }, [isExpanded, displayedTableData.length]);
+    // capture: true — 在 ReactFlow pane 的 bubble 监听器之前触发
+    // passive: false — 允许调用 preventDefault()
+    node.addEventListener("wheel", handleWheel, { passive: false, capture: true });
+    return () => node.removeEventListener("wheel", handleWheel, { capture: true });
+  }, [isExpanded]);
 
   const toggleExpanded = useCallback(() => {
     setIsExpanded((prev) => {
@@ -76,8 +78,6 @@ export const ERNode = memo(({ data }: NodeProps<ERNodeData>) => {
       return next;
     });
   }, [tableName, triggerRelayout]);
-
-  const hiddenRows = isExpanded ? [] : tableData.slice(DEFAULT_VISIBLE_ROWS);
 
   return (
     <div className="er-node" ref={nodeRef}>
@@ -98,18 +98,22 @@ export const ERNode = memo(({ data }: NodeProps<ERNodeData>) => {
 
       {/* 表格 */}
       <div className="er-node__body">
-        <table className="er-node__table">
-          <thead>
-            <tr>
-              <th className="er-node__th er-node__th--name">字段名</th>
-              <th className="er-node__th er-node__th--type">类型</th>
-              <th className="er-node__th er-node__th--nullable">可空</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedTableData
-              .filter((row) => row.show)
-              .map((row) => (
+        {/* 折叠时：固定高度可滚动容器；展开时：不限高度 */}
+        <div
+          ref={scrollBodyRef}
+          className={`er-node__scroll-body${isExpanded ? " er-node__scroll-body--expanded" : ""}`}
+          style={isExpanded ? undefined : { maxHeight: COLLAPSED_MAX_HEIGHT }}
+        >
+          <table className="er-node__table">
+            <thead>
+              <tr>
+                <th className="er-node__th er-node__th--name">字段名</th>
+                <th className="er-node__th er-node__th--type">类型</th>
+                <th className="er-node__th er-node__th--nullable">可空</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row) => (
                 <tr key={row.columnName} className="er-node__tr">
                   <td className="er-node__td er-node__td--name">
                     <Handle
@@ -147,38 +151,15 @@ export const ERNode = memo(({ data }: NodeProps<ERNodeData>) => {
                   </td>
                 </tr>
               ))}
-          </tbody>
-        </table>
-
-        {/* 隐藏行的虚拟 Handle（收起时保持连线可用） */}
-        {!isExpanded && hiddenRows.length > 0 && (
-          <div className="er-node__hidden-handles">
-            {hiddenRows.map((row) => (
-              <React.Fragment key={row.columnName}>
-                <Handle
-                  type="target"
-                  position={Position.Left}
-                  id={row.columnName}
-                  className="column-handle column-handle--hidden"
-                />
-                <Handle
-                  type="source"
-                  position={Position.Right}
-                  id={row.columnName}
-                  className="column-handle column-handle--hidden"
-                />
-              </React.Fragment>
-            ))}
-          </div>
-        )}
+            </tbody>
+          </table>
+        </div>
 
         {/* 展开/收起按钮 */}
         {needsExpansion && (
           <div className="er-node__expand-ctrl">
             <button className="er-node__expand-btn" onClick={toggleExpanded}>
-              {isExpanded
-                ? "收起"
-                : `展开 (${tableData.length - DEFAULT_VISIBLE_ROWS} 行)`}
+              {isExpanded ? "收起" : `展开全部 (${tableData.length} 行)`}
             </button>
           </div>
         )}

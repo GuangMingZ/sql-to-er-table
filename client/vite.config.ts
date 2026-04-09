@@ -1,6 +1,7 @@
 import path from "path";
 import { defineConfig } from "vite";
 import crypto from "crypto";
+import { visualizer } from "rollup-plugin-visualizer";
 
 const base = "/";
 
@@ -75,6 +76,14 @@ export default defineConfig(() => {
         ignored: ["!**/client/**", "**/server/**", "**/node_modules/**"],
       },
     },
-    plugins: [],
+    plugins: [
+      visualizer({
+        open: true, // 构建后自动打开浏览器
+        filename: "dist/stats.html",
+        gzipSize: true, // 显示 gzip 后的体积
+        brotliSize: true, // 显示 brotli 压缩后的体积
+        template: "treemap", // 可选：treemap | sunburst | network
+      }),
+    ],
   };
 });

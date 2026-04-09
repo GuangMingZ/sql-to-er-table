@@ -63,6 +63,32 @@
     position: relative;
   }
 
+  // 折叠时：固定高度可滚动区域；展开时：无高度限制
+  &__scroll-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    // 自定义滚动条样式
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #d9d9d9;
+      border-radius: 2px;
+      &:hover {
+        background: #bfbfbf;
+      }
+    }
+
+    &--expanded {
+      overflow-y: visible;
+      max-height: none !important;
+    }
+  }
+
   &__table {
     width: 100%;
     border-collapse: collapse;
@@ -167,16 +193,6 @@
     padding: 0 4px;
   }
 
-  &__hidden-handles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 0;
-    overflow: visible;
-    pointer-events: none;
-  }
-
   &__expand-ctrl {
     display: flex;
     justify-content: center;
@@ -221,13 +237,5 @@
 
   &--right {
     right: -5px !important;
-  }
-
-  &--hidden {
-    width: 0 !important;
-    height: 0 !important;
-    border: none !important;
-    opacity: 0;
-    pointer-events: none;
   }
 }
